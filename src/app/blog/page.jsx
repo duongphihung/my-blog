@@ -2,25 +2,42 @@ import React from 'react'
 import styles from './page.module.css'
 import Link from 'next/link'
 import Image from 'next/image'
+import { notFound } from 'next/navigation'
 
-const Blog = () => {
+async function getData() {
+    const res = await fetch('http://localhost:3000/api/posts', {
+        next: { revalidate: 10 },
+    })
+
+    if (!res.ok) {
+        return notFound();
+    }
+   
+    return res.json()
+}
+
+const Blog = async () => {
+    const data = await getData();
+    console.log(data)
     return (
         <div className={styles.mainContainer}>
-            <Link href="/blog/testId" className={styles.container}>
-                <div className={styles.imageContainer}>
-                    <Image
-                        src="https://images.pexels.com/photos/14822794/pexels-photo-14822794.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
-                        alt=""
-                        width={400}
-                        height={250}
-                        className={styles.image}
-                    />
-                </div>
-                <div className={styles.content}>
-                    <h1 className={styles.title}>Test</h1>
-                    <p className={styles.desc}>Desc</p>
-                </div>
-            </Link>
+            {data.map(item => (
+                <Link href={`/blog/${item._id}`} className={styles.container} key={item._id}>
+                    <div className={styles.imageContainer}>
+                        <Image
+                            src={item.img}
+                            alt=""
+                            width={400}
+                            height={250}
+                            className={styles.image}
+                        />
+                    </div>
+                    <div className={styles.content}>
+                        <h1 className={styles.title}>{item.title}</h1>
+                        <p className={styles.desc}>{item.body}</p>
+                    </div>
+                </Link>
+            ))}
         </div>
     )
 }
